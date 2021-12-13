@@ -1,0 +1,52 @@
+---
+title: "bikeshare_exp1"
+author: "Tarak Patel"
+date: "11/03/2021"
+output: html_notebook
+---
+
+Purpose: Examine September DC Bikeshare data to discover interesting patterns, if any. The immediate goal is to visualize for some pattern of ridership across a period of time.
+
+Source for Data: https://moodle.clarkson.edu/mod/resource/view.php?id=817615
+
+## Load Packages
+```{r}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+```
+
+
+## Loading datasets
+```{r}
+bkshare_df1 = read.csv("202109-capitalbikeshare-tripdata.csv") %>% clean_names()
+```
+
+Filtering to September 1st
+
+```{r}
+bkshare_df2 = bkshare_df1 %>% filter(mday(started_at) == 1)
+```
+
+```{r}
+bkshare_df3 = bkshare_df2 %>% mutate(hr = hour(started_at), dur = (ended_at-started_at))
+```
+
+## Computing ridership versus time
+
+```{r}
+bkshare_df4 = bkshare_df1 %>% select(rideable_type,start = started_at, end = ended_at) %>%
+  pivot_longer(cols = start:end, names_to = "type", values_to = "time") %>%
+  arrange(time) %>%
+  mutate(inc = case_when(
+    type == "start" ~ 1,
+    type == "end" ~ -1
+  ), riders = cumsum(inc))
+```
+
+Now we attempt to plot over the entire month of September
+
+```{r}
+bkshare_df4 %>% mutate(day = day(time)) %>% ggplot(aes(time,riders)) + geom_point(size=0.5, alpha = 0.02) + facet_wrap(~day, scales = "free_x", ncol = 7) 
+```
+
