@@ -28,6 +28,7 @@ For our analysis, in addition to the coronavirus package, we will use the follow
 -   **ggrepel** package for pretty printing of country labels
 
 We will make use of the **DT** package for interactive display of tabular output in the Appendix.
+The here package allows us to use a simpler function call to read in the data
 
 ```{r load-packages, warning=FALSE, message=FALSE}
 library(coronavirus) # devtools::install_github("RamiKrispin/coronavirus")
@@ -37,6 +38,7 @@ library(glue)
 library(scales)
 library(ggrepel)
 library(DT)
+library(here)
 ```
 
 ## Data prep
@@ -64,7 +66,7 @@ countries <- c(
 ```
 
 In the following code chunk we filter the data frame for deaths in the countries we specified above and calculate cumulative number of deaths.
-We will only visualise data since 10th confirmed death.
+We will only visualize data since 10th confirmed death.
 
 ```{r prep-country-data}
 country_data <- coronavirus %>%

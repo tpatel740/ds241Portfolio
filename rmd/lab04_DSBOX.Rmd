@@ -2,7 +2,9 @@
 title: "Lab4DSbox"
 author: "Tarak Patel"
 date: "10/8/2021"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -12,16 +14,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Load packages and data
 
 ```{r load-packages, message = FALSE}
-# install.packages("devtools")
+#install.packages("devtools")
+#devtools::install_github("rstudio-education/dsbox")
 
 library(tidyverse) 
 library(dsbox) 
 library(readxl)
+library(here)
 
 ```
-
+### Loading state data
 ```{r load-data, message = FALSE}
-states <- read_excel("Documents/CollegeStuff/SeniorYear/Fall2021/DS241/states.xlsx")
+states <- read_excel(here("data","raw","states.xlsx"))
 ```
 
 ### Exercise 1
@@ -101,6 +105,7 @@ laquinta %>%
     state == "ANT"           ~ "Colombia",
     state == "FM"            ~ "Honduras",
     state %in% c("AG","CH","NL", "PU", "QR", "SL", "VE") ~ "Mexico"))
+
 ```
 
 ### Exercise 9

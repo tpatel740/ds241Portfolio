@@ -2,7 +2,9 @@
 title: "Lab5DennysLaquintaPt2"
 author: "Tarak Patel"
 date: "10/16/2021"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ### Load packages and state data
@@ -10,11 +12,12 @@ output: html_notebook
 ```{r load-packages, message = FALSE}
 library(tidyverse) 
 library(dsbox) 
+library(here)
+library(readxl)
 ```
 
 ```{r load-data, message = FALSE}
-library(readxl)
-states <- read_xlsx("C:/Users/tarak/Desktop/states.xlsx")
+states <- read_excel(here("data","raw","states.xlsx"))
 ```
 
 ### Exercise 1: Filter the Denny’s dataframe for Alaska (AK) and save the result as dn_ak. How many Denny’s locations are there in Alaska?
@@ -164,4 +167,4 @@ dn_lq_ga_mindist %>% ggplot(aes(x=closest)) + geom_dotplot()
 
 ### Exercise 12: Among the states you examined, where is Mitch Hedberg’s joke most likely to hold true? Explain your reasoning.
 
-Among the states examined and analzyed, Mitch Hedberg's joke is most likely to hold true in the state of Texas because the visualization by Texas showed an abundance of locations where there were a Denny's and La Quinta close by.
+Among the states examined and analyzed, Mitch Hedberg's joke is most likely to hold true in the state of Texas because the visualization by Texas showed an abundance of locations where there were a Denny's and La Quinta close by.

@@ -1,8 +1,10 @@
 ---
 title: "Lab 05 - La Quinta is Spanish for next to Denny's, Pt. 2"
-author: "Sebastian Kaltenbach"
-date: "2021-10-17"
-output: html_notebook
+author: "Tarak Patel"
+date: "10/17/2021"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ### Load packages and data
@@ -17,11 +19,12 @@ For our analysis, in addition to the dsbox package, we will use the following pa
 library(tidyverse) 
 library(dsbox) 
 library(stringr)
+library(here)
 ```
 
 ## Data prep
 
-For accessability purposes, the required dataframes of Denny's and La Quinta are saved as local variables.
+For accessibility purposes, the required data frames of Denny's and La Quinta are saved as local variables.
 
 ```{r}
 dn <- dennys
@@ -31,7 +34,7 @@ lq <- laquinta
 Load U.S. state information in local variable
 
 ```{r load-data, message = FALSE}
-states <- read_csv("data/states.csv")
+states <- read_csv(here("data","raw","states.xlsx"))
 ```
 
 ### Exercise 1
@@ -42,6 +45,7 @@ dn_ak <- dennys %>%
   filter(state == "AK")
 nrow(dn_ak)
 ```
+There are 3 Denny's locations in Alaska.
 
 ### Exercise 2
 
@@ -51,7 +55,7 @@ lq_ak <- laquinta %>%
   filter(state == "AK")
 nrow(lq_ak)
 ```
-
+There are 2 La Quinta Locations in Alaska
 ### Exercise 3
 
 How many pairings are there between all Denny’s and all La Quinta locations in Alaska, i.e. how many distances do we need to calculate between the locations of these establishments in Alaska?
@@ -71,12 +75,13 @@ How many observations are in the joined dn_lq_ak data frame? What are the names 
 ```{r}
 glimpse(dn_lq_ak)
 ```
+There are 6 observations in the joined data frame. The names of the variables in this fully joined data frame are: address.x, city.x, State, zip.x, longitude.x, latitude.x, address.y, city.y, zip.y, longitude.y, and latitude.y. 'x' denotes the data comes from the Denny's data frame and 'y' denotes the data comes from the La Quinta data frame.
 
 ### Exercise 5
 
 What function from the tidyverse do we use the add a new variable to a data frame while keeping the existing variables?
 
-The 'mutate' function.
+Answer: The 'mutate' function.
 
 The following function is provided by Data Science in a box and is calculating the distance between two locations (lat, long).
 
@@ -119,7 +124,7 @@ dn_lq_ak_mindist
 
 ### Exercise 8
 
-Describe the distribution of the distances Denny’s and the nearest La Quinta locations in Alaska. Also include an appripriate visualization and relevant summary statistics.
+Describe the distribution of the distances Denny’s and the nearest La Quinta locations in Alaska. Also include an appropriate visualization and relevant summary statistics.
 
 ```{r}
 ggplot(data = dn_lq_ak_mindist, aes(y = closest)) +
@@ -265,7 +270,7 @@ analyze_state <- function(this_state) {
 3. Grab the dataset (available in moodle in "week of 28 Sep" ) for the 10000 US restaurants.
 
 ```{r}
-FastFoodRestaurants <- read_csv("FastFoodRestaurants.csv")
+FastFoodRestaurants <- read_csv(here("data","raw","FastFoodRestaurants.csv"))
 # Clean the existing FastFoodRestaurants dataframe
 FastFoodRestaurants <- FastFoodRestaurants %>% 
   rename(state = province) %>%

@@ -20,7 +20,7 @@ library(janitor)
  
  Loading the file posted on Moodle: 
 ```{r}
-df1 = read_csv("CU_ACAD_DEPT_WHEN_OFF_ENRL_22740.csv", 
+df1 = read_csv("C:/Users/Tarak/Documents/CollegeStuff/SeniorYear/Fall2021/DS241/Portfolio/Portfolio/data/raw/CU_ACAD_DEPT_WHEN_OFF_ENRL_22740.csv", 
     skip = 1) %>% clean_names()
 ```
 
