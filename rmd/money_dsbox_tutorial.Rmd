@@ -1,0 +1,138 @@
+---
+title: "money_dsbox_tutorial"
+author: "Tarak Patel"
+date: "10/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### Load packages
+```{r}
+library(tidyverse)
+library(robotstxt)
+library(rvest)
+library(scales)
+library(dsbox)
+library(janitor)
+library(here)
+```
+### Data Collection using web scraping
+```{r}
+paths_allowed("https://www.opensecrets.org")
+url_2020 <- "https://www.opensecrets.org/political-action-committees-pacs/foreign-connected-pacs/2020"
+
+# read html data from the webpage
+page <- read_html(url_2020)
+# pick out necessary 2020 PAC data and convert data to a tibble
+pac_2020 <- page %>%
+  html_node(".DataTable-Partial") %>%
+  html_table("td", header = TRUE, fill = TRUE) %>%
+  as_tibble()
+#clean up names of variables
+pac_2020 <- pac_2020 %>%
+  rename(
+    name = `PAC Name (Affiliate)`,
+    country_parent = `Country of Origin/Parent Company`,
+    total = Total,
+    dems = Dems,
+    repubs = Repubs
+  )
+#clean up name variable and look at data
+pac_2020 <- pac_2020 %>%
+  mutate(name = str_squish(name))
+glimpse(pac_2020)
+```
+## Now we need to clean the data we gathered.
+```{r}
+nrow(pac_2020)
+ncol(pac_2020)
+
+#Need to separate country_parent field into something useful
+pac_all_raw <- pac_all_raw %>%
+  separate(country_parent, into = c("country", "parent"), sep = "/", extra = "merge")
+```
+
+Created function to convert money to numeric
+```{r}
+parse_currency <- function(x){
+  x %>% 
+    str_remove("\\$") %>%
+    str_remove_all(",") %>%
+    as.numeric()
+}
+```
+
+Try and use the function and look at the clean data
+```{r}
+pac_all <- pac_all_raw %>%
+  mutate(
+    total = parse_currency(total),
+    dems = parse_currency(dems),
+    repubs = parse_currency(repubs)
+  )
+glimpse(pac_all)
+```
+### Data Visualization
+```{r}
+# create a line plot of total contributions from all foreign-connected PACs in the UK and Canada over the years
+pac_all %>%
+  filter(country %in% c("Canada","UK")) %>%
+  group_by(country, year) %>%
+  summarise(tot = sum(total), .groups = "drop") %>%
+  ggplot(mapping = aes(x = year, y = tot, group = country, color = country)) +
+  geom_line()
+```
+Further analysis to be done below:
+
+```{r}
+#filter data for UK contributions
+pac_all %>%
+  filter(country == "UK") %>%
+  group_by(year) %>%
+  summarise(
+    Democrat = sum(dems),
+    Republican = sum(repubs),
+    .groups = "drop"
+  ) %>%
+# need to pivot the data to be longer
+  pivot_longer(
+    cols = c(Democrat, Republican), 
+    names_to = "party", 
+    values_to = "amount"
+    )
+```
+Save data as new data frame and plot data
+```{r}
+pac_all_final <- pac_all %>%
+  filter(country == "UK") %>%
+  group_by(year) %>%
+  summarise(
+    Democrat = sum(dems),
+    Republican = sum(repubs),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(Democrat, Republican), 
+    names_to = "party", 
+    values_to = "amount"
+    )
+```
+
+```{r}
+pac_all_final %>%
+  ggplot(mapping = aes( x = year, y = amount, color = party)) +
+  geom_line() + 
+  scale_color_manual(values = c("blue", "red")) +     scale_y_continuous(labels = label_dollar(scale = 0.000001, suffix = "M")) +
+  labs(
+    x = "Year",
+    y = "Amount",
+    color = "Party",
+    title = "Contribution to US politics from UK-Connected PACs",
+    subtitle = "By party, over time"
+  ) + theme_minimal()
+```
+
+
+
