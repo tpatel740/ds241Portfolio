@@ -1,0 +1,83 @@
+---
+title: "MA132Exercise"
+author: "Tarak Patel"
+date: "10/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Packages
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+## Read Data
+ 
+ Loading the file posted on Moodle: 
+```{r}
+df1 = read_csv("CU_ACAD_DEPT_WHEN_OFF_ENRL_22740.csv", 
+    skip = 1) %>% clean_names()
+```
+
+## Goal
+
+Interested in predicting number of students enrolled in Calculus 2 in the 
+spring.
+
+Possible factors include: Students enrolled in Calculus 1 in the fall
+                 Took Calculus 2 in the fall and did not pass
+                 Transfer students
+
+Variables in available data set: 
+    Prev Fall Calc 1 (x1), Prev Fall Calc 2 (x2) 
+    Following Spring Calc 2 (y)
+    
+## Step 1: Data Manipulation
+
+Will need to use select(), filter(), summarize(), mutate(), etc to reach 
+desired data set
+
+```{r}
+##df2 = df1 %>% select(course_id:catalog,term_7,term_8,tot_enrl,component) %>%
+df2 = df1 %>% select(-instructor) %>%
+  distinct %>%
+  select(course_id:catalog,term_8,tot_enrl,component) %>%
+  filter(subject == "MA",catalog %in% c(131,132), component == "LEC") %>%
+  select(-component,-subject, -course_id) %>%
+  rename(term = term_8) %>%
+  mutate(course = case_when(catalog == 131 ~ "Calculus 1",
+                            catalog == 132 ~ "Calculus 2")) %>%
+  group_by(course,term) %>%
+  summarise(enrl = sum(tot_enrl))
+  ##filter()%>%
+  ##filter(component == "LEC")
+  
+  
+```
+Data Processing
+
+```{r}
+df3 = df2 %>% separate(term, into = c("term","yr"), sep = " ", convert = TRUE) %>%
+  filter(term != "Summer") %>% ungroup()
+df4 = df3 %>% mutate(yr = yr - 2000) %>%
+  mutate(ay = case_when(term == "Fall" ~str_c(yr,"-",yr+1),
+                        term == "Spring" ~str_c(yr - 1, "-",yr)))
+df5 = df4 %>% pivot_wider(ay,names_from = c(course,term),values_from = enrl) %>%
+  clean_names() %>% arrange(ay)
+
+```
+
+Note that ay is the academic school year.
+We need df5 to widen the previous data frame.
+Now a visual will be created so a prediction can be made.
+
+## Data Visualization
+```{r}
+df5 %>% filter(calculus_2_spring > 0) %>% ggplot(aes(x = calculus_1_fall, y = calculus_2_spring)) + geom_point() + geom_smooth(method = lm) + geom_vline(xintercept = tail(df5$calculus_1_fall,1))
+```
+Looking at this visual we can tell that if there are a lot of students enrolled in Calc 1 in the fall then there will be more students enrolled in Calc 2 in the following spring semester. I would say an accurate prediction for the number of students that are enrolled in Calc 2 next spring would be anywhere from 350 students to 365 students.

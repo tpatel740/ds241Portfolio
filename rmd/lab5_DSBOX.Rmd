@@ -1,0 +1,167 @@
+---
+title: "Lab5DennysLaquintaPt2"
+author: "Tarak Patel"
+date: "10/16/2021"
+output: html_notebook
+---
+
+### Load packages and state data
+
+```{r load-packages, message = FALSE}
+library(tidyverse) 
+library(dsbox) 
+```
+
+```{r load-data, message = FALSE}
+library(readxl)
+states <- read_xlsx("C:/Users/tarak/Desktop/states.xlsx")
+```
+
+### Exercise 1: Filter the Denny’s dataframe for Alaska (AK) and save the result as dn_ak. How many Denny’s locations are there in Alaska?
+
+```{r}
+dn_ak <- dennys %>%
+  filter(state == "AK")
+nrow(dn_ak)
+```
+There are 3 Denny's locations in Alaska.
+
+
+### Exercise 2: Filter the La Quinta dataframe for Alaska (AK) and save the result as lq_ak. How many La Quinta locations are there in Alaska?
+
+```{r}
+lq_ak <- laquinta %>%
+  filter(state == "AK")
+nrow(lq_ak)
+```
+There are 2 La Quinta locations in Alaska.
+
+
+### Exercise 3: How many pairings are there between all Denny’s and all La Quinta locations in Alaska, i.e. how many distances do we need to calculate between the locations of these establishments in Alaska?
+
+There are 6 pairings between all Denny's and all La Quinta locations in Alaska. Therefore we need to calculate a total of 6 distances. To do this we will need to join 2 Denny's and La Quinta data frames.
+
+```{r}
+dn_lq_ak <- full_join(dn_ak, lq_ak, by = "state")
+dn_lq_ak
+```
+This performs a full join on the Denny's and La Quinta data by state.
+
+
+
+### Exercise 4: How many observations are in the joined dn_lq_ak data frame? What are the names of the variables in this data frame.
+
+There are 6 observations in the joined data frame. The names of the variables in this fully joined data frame are: address.x, city.x, State, zip.x, longitude.x, latitude.x, address.y, city.y, zip.y, longitude.y, and latitude.y. 'x' denotes the data comes from the Denny's data frame and 'y' denotes the data comes from the La Quinta data frame.
+
+
+### Exercise 5: What function from the tidyverse do we use the add a new variable to a data frame while keeping the existing variables?
+
+From the tidyverse, we use the mutate function. To calculate the distances we need to declare a function that is not found in R.
+
+```{r}
+haversine <- function(long1, lat1, long2, lat2, round = 3) {
+  # convert to radians
+  long1 = long1 * pi / 180
+  lat1  = lat1  * pi / 180
+  long2 = long2 * pi / 180
+  lat2  = lat2  * pi / 180
+  
+  R = 6371 # Earth mean radius in km
+  
+  a = sin((lat2 - lat1)/2)^2 + cos(lat1) * cos(lat2) * sin((long2 - long1)/2)^2
+  d = R * 2 * asin(sqrt(a))
+  
+  return( round(d,round) ) # distance in km
+}
+```
+
+
+### Exercise 6: Calculate the distances between all pairs of Denny’s and La Quinta locations and save this variable as distance. Make sure to save this variable in THE dn_lq_ak data frame so that you can use it later.
+
+Using the mutate function we add a distance variable to the fully joined data frame.
+
+```{r}
+dn_lq_ak=dn_lq_ak %>% 
+  mutate(distance=
+           haversine(longitude.x, latitude.x, longitude.y, latitude.y, round = 4))
+```
+
+
+### Exercise 7: Calculate the minimum distance between a Denny’s and La Quinta for each Denny’s location. To do so we group by Denny’s locations and calculate a new variable that stores the information for the minimum distance.
+
+```{r}
+dn_lq_ak_mindist <- dn_lq_ak %>%
+  group_by(address.x) %>%
+  summarise(closest = min(distance))
+```
+
+
+### Exercise 8: Describe the distribution of the distances Denny’s and the nearest La Quinta locations in Alaska. Also include an appripriate visualization and relevant summary statistics.
+
+```{r}
+summary(dn_lq_ak_mindist)
+dn_lq_ak_mindist %>% ggplot(aes(x=closest)) + geom_dotplot()
+```
+
+
+### Exercise 9: Repeat the same analysis for North Carolina: (i) filter Denny’s and La Quinta Data Frames for NC, (ii) join these data frames to get a completelist of all possible pairings, (iii) calculate the distances between all possible pairings of Denny’s and La Quinta in NC, (iv) find the minimum distance between each Denny’s and La Quinta location, (v) visualize and describe the distribution of these shortest distances using appropriate summary statistics.
+
+```{r}
+dn_nc <- dennys %>%
+  filter(state == "NC")
+lq_nc <- laquinta %>%
+  filter(state == "NC")
+dn_lq_nc <- full_join(dn_nc, lq_nc, by = "state")
+dn_lq_nc=dn_lq_nc %>% 
+  mutate(distance=
+           haversine(longitude.x, latitude.x, longitude.y, latitude.y, round = 4))
+dn_lq_nc_mindist <- dn_lq_nc %>%
+  group_by(address.x) %>%
+  summarise(closest = min(distance))
+summary(dn_lq_nc_mindist)
+dn_lq_nc_mindist %>% ggplot(aes(x=closest)) + geom_dotplot()
+```
+
+### Exercise 10: Repeat the same analysis for Texas.
+
+```{r}
+dn_tx <- dennys %>%
+  filter(state == "TX")
+lq_tx <- laquinta %>%
+  filter(state == "TX")
+dn_lq_tx <- full_join(dn_tx, lq_tx, by = "state")
+dn_lq_tx=dn_lq_tx %>% 
+  mutate(distance=
+           haversine(longitude.x, latitude.x, longitude.y, latitude.y, round = 4))
+dn_lq_tx_mindist <- dn_lq_tx %>%
+  group_by(address.x) %>%
+  summarise(closest = min(distance))
+summary(dn_lq_tx_mindist)
+dn_lq_tx_mindist %>% ggplot(aes(x=closest)) + geom_dotplot()
+```
+
+
+### Exercise 11: Repeat the same analysis for a state of your choosing, different than the ones we covered so far.
+
+State Chosen: Georgia
+
+```{r}
+dn_ga <- dennys %>%
+  filter(state == "GA")
+lq_ga <- laquinta %>%
+  filter(state == "GA")
+dn_lq_ga <- full_join(dn_ga, lq_ga, by = "state")
+dn_lq_ga=dn_lq_ga %>% 
+  mutate(distance=
+           haversine(longitude.x, latitude.x, longitude.y, latitude.y, round = 4))
+dn_lq_ga_mindist <- dn_lq_ga %>%
+  group_by(address.x) %>%
+  summarise(closest = min(distance))
+summary(dn_lq_ga_mindist)
+dn_lq_ga_mindist %>% ggplot(aes(x=closest)) + geom_dotplot()
+```
+
+
+### Exercise 12: Among the states you examined, where is Mitch Hedberg’s joke most likely to hold true? Explain your reasoning.
+
+Among the states examined and analzyed, Mitch Hedberg's joke is most likely to hold true in the state of Texas because the visualization by Texas showed an abundance of locations where there were a Denny's and La Quinta close by.
